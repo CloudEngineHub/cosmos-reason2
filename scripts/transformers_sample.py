@@ -26,9 +26,9 @@
 # ]
 # ///
 
-"""Minimal example of inference with Cosmos-Reason2."""
+"""Hugging Face transformers inference sample."""
 
-# Source: https://github.com/QwenLM/Qwen3-VL?tab=readme-ov-file#new-qwen-vl-utils-usage
+# Source: https://github.com/QwenLM/Qwen3-VL?tab=readme-ov-file#using--transformers-to-chat
 
 from pathlib import Path
 
@@ -54,6 +54,7 @@ def main():
 
     # Optional: Limit vision tokens
     min_vision_tokens = 256
+    max_new_tokens = 4096
     max_vision_tokens = 8192
     processor.image_processor.size = {
         "shortest_edge": min_vision_tokens * PIXELS_PER_TOKEN,
@@ -95,7 +96,7 @@ def main():
     inputs = inputs.to(model.device)
 
     # Run inference
-    generated_ids = model.generate(**inputs, max_new_tokens=4096)
+    generated_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
     generated_ids_trimmed = [
         out_ids[len(in_ids) :]
         for in_ids, out_ids in zip(inputs.input_ids, generated_ids, strict=False)

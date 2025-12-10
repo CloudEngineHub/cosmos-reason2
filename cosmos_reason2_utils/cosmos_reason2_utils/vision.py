@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Vision processing utilities."""
+
 import os
 from pathlib import Path
 
@@ -20,22 +22,40 @@ import numpy as np
 import pydantic
 import torch
 from PIL import Image
-from qwen_vl_utils.vision_process import SPATIAL_MERGE_SIZE as SPATIAL_MERGE_SIZE
 
-"""Vision processing utilities."""
+from cosmos_reason2_utils.text import (
+    SamplingOverrides,
+)
 
-# https://huggingface.co/nvidia/Cosmos-Reason2-2B/blob/main/video_preprocessor_config.json#L6
-IMAGE_PATCH_SIZE = 16
-PATCH_FACTOR = IMAGE_PATCH_SIZE * SPATIAL_MERGE_SIZE
-PIXELS_PER_TOKEN = PATCH_FACTOR**2
+
+# Source: https://huggingface.co/nvidia/Cosmos-Reason2-2B/blob/main/video_preprocessor_config.json
+_PATCH_SIZE = 16
+_MERGE_SIZE = 2
+_PATCH_FACTOR = _PATCH_SIZE * _MERGE_SIZE
+PIXELS_PER_TOKEN = _PATCH_FACTOR**2
 """Number of pixels per visual token."""
 
+MAX_MODEL_LEN = 16384
+"""Maximum model context length."""
+# 64 visual tokens = 65536 = 64 * 32**2
+SHORTEST_EDGE = 65536
+# 16777216 = 16384 * 32**2
+LONGEST_EDGE = 16777216
+
+class VisionSizeConfig(pydantic.BaseModel):
+    """Config for vision size."""
+
+    model_config = pydantic.ConfigDict(extra="allow", use_attribute_docstrings=True)
+    
+    shortest_edge: int | None = None
+    """Min total pixels of the image/video."""
+    longest_edge: int | None = None
+    """Max total pixels of the image/video."""
 
 class VisionConfig(pydantic.BaseModel):
     """Config for vision processing.
 
-    Source:
-    https://github.com/QwenLM/Qwen3-VL/blob/main/qwen-vl-utils/src/qwen_vl_utils/vision_process.py
+    Source: https://huggingface.co/docs/transformers/en/model_doc/qwen3_vl#transformers.Qwen3VLVideoProcessor
 
     Attributes are sorted by priority. Higher priority attributes override lower
     priority attributes.
@@ -43,32 +63,59 @@ class VisionConfig(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(extra="allow", use_attribute_docstrings=True)
 
-    resized_height: int | None = None
-    """Max height of the image/video"""
-    resized_width: int | None = None
-    """Max width of the image/video"""
-
-    min_pixels: int | None = None
-    """Min frame pixels of the image/video"""
-    max_pixels: int | None = None
-    """Max frame pixels of the image/video"""
-    total_pixels: int | None = None
-    """Max total pixels of the image/video"""
-
-    video_start: float | None = None
-    """Start time of the video (seconds)"""
-    video_end: float | None = None
-    """End time of the video (seconds)"""
-
-    nframes: int | None = None
-    """Number of frames of the video"""
-
+    num_frames: int | None = None
+    """Maximum number of frames to sample when do_sample_frames=True."""
     fps: float | None = None
-    """FPS of the video"""
-    min_frames: int | None = None
-    """Min frames of the video"""
-    max_frames: int | None = None
-    """Max frames of the video"""
+    """FPS of the video."""
+    do_sample_frames: bool = True
+    """Whether to sample frames from the video before processing or to process the whole video."""
+    size: VisionSizeConfig | None = None
+    """Size of the image/video."""
+
+def create_vision_kwargs(
+    *,
+    sampling_params: SamplingOverrides,
+    vision_config: VisionConfig,
+    max_model_len: int | None,
+) -> dict:
+    """Create vision processor kwargs.
+
+    Args:
+        sampling_params: Sampling parameters.
+        vision_config: Vision config.
+        max_model_len: Maximum model length.
+
+    Returns:
+        kwargs: Keyword arguments for transformers processor.
+    """
+
+    # Compute min pixels
+    if vision_config.size.shortest_edge:
+        shortest_edge = vision_config.size.shortest_edge
+    else:
+        shortest_edge = 0
+
+    # Compute total pixels
+    if not max_model_len:
+        max_model_len = MAX_MODEL_LEN
+    assert sampling_params.max_tokens
+    if max_model_len < sampling_params.max_tokens:
+        raise ValueError("Max model length must be greater than max tokens.")
+    max_seq_len = max_model_len - sampling_params.max_tokens
+    longest_edge = int(max_seq_len * PIXELS_PER_TOKEN * 0.9)
+    if vision_config.size.longest_edge:
+        if vision_config.size.longest_edge > longest_edge:
+            raise ValueError(
+                f"Longest edge {vision_config.size.longest_edge} exceeds limit {longest_edge}."
+            )
+        longest_edge = vision_config.size.longest_edge
+    
+    vision_kwargs = vision_config.model_dump(exclude_none=True)
+    vision_kwargs["size"] = {
+        "shortest_edge": shortest_edge,
+        "longest_edge": longest_edge,
+    }
+    return vision_kwargs
 
 
 def _tensor_to_pil_images(tensor: torch.Tensor) -> list[Image.Image]:

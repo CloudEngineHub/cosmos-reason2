@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from typing import Any
+
+import pydantic
 
 """Text processing utilities."""
 
@@ -30,6 +31,62 @@ Your reasoning.
 Write your final answer immediately after the </think> tag."""
 """Reasoning addon prompt."""
 
+# Copied from [vllm.SamplingParams](https://docs.vllm.ai/en/latest/dev/sampling_params.html).
+# Ideally, we could auto-generate this class.
+class SamplingOverrides(pydantic.BaseModel):
+    """Sampling parameters for text generation."""
+
+    model_config = pydantic.ConfigDict(extra="allow", use_attribute_docstrings=True)
+
+    n: int | None = None
+    """Number of outputs to return for the given prompt request."""
+    presence_penalty: float | None = None
+    """Penalizes new tokens based on whether they appear in the generated text
+    so far. Values > 0 encourage the model to use new tokens, while values < 0
+    encourage the model to repeat tokens."""
+    repetition_penalty: float | None = None
+    """Penalizes new tokens based on whether they appear in the prompt and the
+    generated text so far. Values > 1 encourage the model to use new tokens,
+    while values < 1 encourage the model to repeat tokens."""
+    temperature: float | None = None
+    """Controls the randomness of the sampling. Lower values make the model
+    more deterministic, while higher values make the model more random. Zero
+    means greedy sampling."""
+    top_p: float | None = None
+    """Controls the cumulative probability of the top tokens to consider. Must
+    be in (0, 1]. Set to 1 to consider all tokens."""
+    top_k: int | None = None
+    """Controls the number of top tokens to consider. Set to 0 (or -1) to
+    consider all tokens."""
+    seed: int | None = None
+    """Random seed to use for the generation."""
+    max_tokens: int | None = None
+    """Maximum number of tokens to generate per output sequence."""
+
+    @classmethod
+    def get_defaults(cls, *, reasoning: bool = False) -> dict:
+        kwargs = dict(
+            max_tokens=4096,
+        )
+        # Source: https://github.com/QwenLM/Qwen3-VL?tab=readme-ov-file#evaluation-reproduction
+        if reasoning:
+            return kwargs | dict(
+                top_p=0.95,
+                top_k=20,
+                repetition_penalty=1.0,
+                presence_penalty=0.0,
+                temperature=0.6,
+                seed=1234,
+            )
+        else:
+            return kwargs | dict(
+                top_p=0.8,
+                top_k=20,
+                repetition_penalty=1.0,
+                presence_penalty=1.5,
+                temperature=0.7,
+                seed=3407,
+            )
 
 def create_conversation(
     *,
@@ -38,7 +95,6 @@ def create_conversation(
     response: str = "",
     images: list[Any] | None = None,
     videos: list[Any] | None = None,
-    vision_kwargs: dict | None = None,
 ) -> list[dict]:
     """Create chat conversation for transformers.
 
@@ -48,7 +104,6 @@ def create_conversation(
         response: Assistant response.
         images: List of images.
         videos: List of videos.
-        vision_kwargs: Keyword arguments for vision processor (see `cosmos_reason1_utils.vision.VisionConfig`).
 
     Returns:
         conversation: Chat conversation.
@@ -68,81 +123,4 @@ def create_conversation(
     conversation.append({"role": "user", "content": user_content})
     if response:
         conversation.append({"role": "assistant", "content": response})
-    if vision_kwargs:
-        set_vision_kwargs(conversation, vision_kwargs)
     return conversation
-
-
-def create_conversation_openai(
-    *,
-    user_prompt: str = "",
-    response: str = "",
-    system_prompt: str = SYSTEM_PROMPT,
-    images: list[Any] | None = None,
-    videos: list[Any] | None = None,
-) -> list[dict]:
-    """Create chat conversation for OpenAI API.
-
-    Specification: https://platform.openai.com/docs/api-reference/messages
-
-    Args:
-        system_prompt: System prompt.
-        user_prompt: User prompt.
-        response: Assistant response.
-        images: List of images.
-        videos: List of videos.
-
-    Returns:
-        conversation: Chat conversation.
-    """
-    user_content = []
-    if images is not None:
-        for image in images:
-            user_content.append(
-                {"type": "image_url", "image_url": {"url": _get_media_url(image)}}
-            )
-    if videos is not None:
-        for video in videos:
-            if isinstance(video, dict):
-                user_content.append({"type": "video", "video": video["frame_list"]})
-            else:
-                user_content.append(
-                    {"type": "video_url", "video_url": {"url": _get_media_url(video)}}
-                )
-    if user_prompt:
-        user_content.append({"type": "text", "text": user_prompt})
-    conversation = []
-    if system_prompt:
-        conversation.append({"role": "system", "content": system_prompt})
-    conversation.append({"role": "user", "content": user_content})
-    if response:
-        conversation.append({"role": "assistant", "content": response})
-    return conversation
-
-
-def _get_media_url(path: str) -> str:
-    if ":" in path:
-        return path
-    path = os.path.abspath(path)
-    return f"file://{path}"
-
-
-def set_vision_kwargs(conversation: list[dict], vision_kwargs: dict):
-    """Set vision kwargs for all media messages in conversation.
-
-    Args:
-        conversation: Conversation (see `create_conversation`).
-        vision_kwargs: Keyword arguments for vision processor (see `cosmos_reason1_utils.vision.VisionConfig`).
-    """
-    for msg in conversation:
-        content = msg["content"]
-        if isinstance(content, str):
-            content = [content]
-        for msg in content:
-            if isinstance(msg, dict) and msg.get("type", None) in [
-                "image",
-                "video",
-                "image_url",
-                "video_url",
-            ]:
-                msg |= vision_kwargs
