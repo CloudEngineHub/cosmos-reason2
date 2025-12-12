@@ -132,7 +132,7 @@ Start the server:
 ```shell
 uv run vllm serve nvidia/Cosmos-Reason2-2B \
   --allowed-local-media-path "$(pwd)" \
-  --max-model-len 8192 \
+  --max-model-len 16384 \
   --media-io-kwargs '{"video": {"num_frames": -1}}' \
   --reasoning-parser qwen3 \
   --port 8000
@@ -140,7 +140,7 @@ uv run vllm serve nvidia/Cosmos-Reason2-2B \
 
 Arguments:
 
-* `--max-model-len 8192`: Maximum model length to avoid OOM.
+* `--max-model-len 16384`: Maximum model length to avoid OOM. Recommended range: 8192 - 16384.
 * `--media-io-kwargs '{"video": {"num_frames": -1}}'`: Allow overriding FPS per sample.
 * `--reasoning-parser qwen3`: Parse reasoning trace.
 * `--port 8000`: Server port. Change if you encounter `Address already in use` errors.
@@ -150,7 +150,7 @@ Wait a few minutes for the server to startup. Once complete, it will print `Appl
 Caption a video ([sample output](assets/outputs/caption.log)):
 
 ```shell
-uv run cosmos-reason2-inference online --port 8000 -i prompts/caption.yaml --videos assets/sample.mp4 --fps 4
+uv run cosmos-reason2-inference online --port 8000 -i prompts/caption.yaml --reasoning --videos assets/sample.mp4 --fps 4
 ```
 
 Embodied reasoning with verbose output ([sample output](assets/outputs/embodied_reasoning.log)):
@@ -174,7 +174,7 @@ Arguments:
 Temporally caption a video and save the input frames to `outputs/temporal_localization` for debugging ([sample output](assets/outputs/temporal_localization.log)):
 
 ```shell
-uv run cosmos-reason2-inference offline -v --max-model-len 8192 -i prompts/temporal_localization.yaml --videos assets/sample.mp4 --fps 4 -o outputs/temporal_localization
+uv run cosmos-reason2-inference offline -v --max-model-len 16384 -i prompts/temporal_localization.yaml --videos assets/sample.mp4 --fps 4 -o outputs/temporal_localization
 ```
 
 To list available parameters:
