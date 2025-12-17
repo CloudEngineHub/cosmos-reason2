@@ -13,10 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+default_language_version:
+  node: 25.2.1
+  python: python3.13
 exclude: (?x)(
-    ^assets/
+    ^assets/|
+    ATTRIBUTIONS.md
   )
 repos:
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.2
+    hooks:
+      - id: nbstripout
   - repo: https://github.com/google/addlicense
     rev: v1.2.0
     hooks:
@@ -53,7 +61,9 @@ repos:
     hooks:
       - id: ruff-check
         args: [--fix]
+        exclude: ^examples/notebooks/
       - id: ruff-format
+        exclude: ^examples/notebooks/
   - repo: https://github.com/tcort/markdown-link-check
     rev: v3.14.2
     hooks:
@@ -61,10 +71,8 @@ repos:
         name: link check relative
         id: markdown-link-check
         args: [--config, ".link-check-relative.json", --quiet]
-        exclude: \bATTRIBUTIONS\b
       - alias: link-check
         name: link check
         id: markdown-link-check
         args: [--config, ".link-check.json", --quiet]
         stages: [manual]
-        exclude: \bATTRIBUTIONS\b

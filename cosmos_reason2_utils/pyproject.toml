@@ -48,6 +48,12 @@ cosmos-rl = [
     "toml>=0.10.2",
     "wandb>=0.23.0",
 ]
+trl = [
+  "trl[peft]>=0.26.1",
+  "bitsandbytes>=0.49.0",
+  "tensorboard>=2.20.0",
+  "math_verify>=0.8.0",
+]
 cu128_torch28 = [
   "vllm==0.11.0",
   "torch==2.8.0", # version required by vLLM: https://github.com/vllm-project/vllm/releases

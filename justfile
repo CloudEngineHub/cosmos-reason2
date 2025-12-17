@@ -16,7 +16,7 @@ _pre-commit *args:
   pre-commit run -a {{args}} || pre-commit run -a {{args}}
 
 # Run linting and formatting
-lint: _pre-commit-install _pre-commit-base _pre-commit
+lint: _pre-commit-install _pre-commit-base _pre-commit notebooks-sync license
 
 # Run pyrefly
 _pyrefly *args:
@@ -46,7 +46,6 @@ _pip-licenses *args:
     --output-file ATTRIBUTIONS.md \
     --packages $(cat requirements.txt | cut -d '=' -f 1 | xargs) \
     {{args}}
-  pre-commit run --files ATTRIBUTIONS.md || true
 
 # Update the license
 license: _pip-licenses
@@ -54,6 +53,11 @@ license: _pip-licenses
 # Export config defaults and schemas
 export-configs *args:
   uv run --all-extras python scripts/export_configs.py {{args}}
+
+# Sync jupytext notebooks
+[working-directory: 'examples/notebooks']
+notebooks-sync:
+  uv run jupytext --to ipynb *.py
 
 # Run the docker container
 _docker build_args='' run_args='':
