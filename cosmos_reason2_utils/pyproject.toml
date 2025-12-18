@@ -24,29 +24,26 @@ description = "Cosmos-Reason2 utilities for inference and post-training"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "matplotlib>=3.10.7",
-    "numpy>=2.2.6,<2.3.0", # numba required <2.3
-    "pillow>=12.0.0",
-    "pydantic>=2.12.4",
+  "accelerate>=1.12.0",
+  "av>=16.0.1",
+  "imageio-ffmpeg>=0.6.0",
+  "matplotlib>=3.10.7",
+  "numpy>=2.2.6,<2.3.0", # numba required <2.3
+  "pillow>=12.0.0",
+  "pydantic>=2.12.4",
+  "pyyaml>=6.0.3",
+  "qwen-vl-utils>=0.0.14",
+  "rich>=14.2.0",
+  "transformers>=4.57.0,<5.0.0",
+  "tyro>=0.9.35",
 ]
 
 [project.optional-dependencies]
-inference = [
-    "accelerate>=1.12.0",
-    "av>=16.0.1",
-    "imageio-ffmpeg>=0.6.0",
-    "pydantic>=2.12.4",
-    "pyyaml>=6.0.3",
-    "qwen-vl-utils>=0.0.14",
-    "rich>=14.2.0",
-    "transformers>=4.57.0,<5.0.0",
-    "tyro>=0.9.35",
-]
 cosmos-rl = [
-    "cosmos-rl>=0.3.6",
-    "datasets>=4.4.1",
-    "toml>=0.10.2",
-    "wandb>=0.23.0",
+  "cosmos-rl>=0.3.6",
+  "datasets>=4.4.1",
+  "toml>=0.10.2",
+  "wandb>=0.23.0",
 ]
 trl = [
   "trl[peft]>=0.26.1",

@@ -5,7 +5,7 @@ This directory contains a collection of Jupyter notebooks.
 | Notebook | Description | Open in Colab |
 | --- | --- | --- |
 | [`trl_sft.ipynb`](./trl_sft.ipynb) | Supervised Fine-Tuning (SFT) with QLoRA using TRL | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nvidia-cosmos/cosmos-reason2/blob/main/examples/notebooks/trl_sft.ipynb) |
-| [`trl_grpo.ipynb`](./trl_grpo.ipynb) | GRPO with QLoRA using TRL | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nvidia-cosmos/cosmos-reason2/blob/main/examples/notebooks/trl_grpo.ipynb) |
+<!-- | [`trl_grpo.ipynb`](./trl_grpo.ipynb) | GRPO with QLoRA using TRL | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nvidia-cosmos/cosmos-reason2/blob/main/examples/notebooks/trl_grpo.ipynb) | -->
 
 ## Run Locally
 

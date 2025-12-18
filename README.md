@@ -28,6 +28,7 @@ ______________________________________________________________________
     - [Offline Inference](#offline-inference)
 - [Quantization](#quantization)
 - [Tutorials](#tutorials)
+- [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
 - [License and Contact](#license-and-contact)
 
@@ -111,7 +112,7 @@ CUDA variants:
 Run the container:
 
 ```bash
-docker run -it --gpus all --ipc=host --rm -v .:/workspace -v /workspace/.venv -v /workspace/examples/cosmos_rl/.venv -v /root/.cache:/root/.cache -e HF_TOKEN="$HF_TOKEN" $image_tag
+docker run -it --gpus all --ipc=host --rm -v .:/workspace -v /workspace/.venv -v /workspace/examples/cosmos_rl/.venv -v /root/.cache:/root/.cache -e HF_TOKEN="$HF_TOKEN" --name cosmos-reason2 $image_tag
 ```
 
 Optional arguments:
@@ -164,6 +165,12 @@ Arguments:
 * `--port 8000`: Server port. Change if you encounter `Address already in use` errors.
 
 Wait a few minutes for the server to startup. Once complete, it will print `Application startup complete.`. Open a new terminal to run inference commands.
+
+If using Docker, spawn a new terminal:
+
+```shell
+docker exec -it cosmos-reason2 /bin/bash
+```
 
 Caption a video ([sample output](assets/outputs/caption.log)):
 
@@ -224,11 +231,16 @@ Arguments:
 
 ## Tutorials
 
-* Post-Training
-  * [Cosmos-RL](examples/cosmos_rl/README.md)
+* [Notebooks](examples/notebooks/README.md)
+* [Cosmos-RL](examples/cosmos_rl/README.md)
+
+## Troubleshooting
+
+See [troubleshooting guide](docs/troubleshooting.md)
 
 ## Additional Resources
 
+* [Troubleshooting](docs/troubleshooting.md)
 * [Example prompts](prompts/README.md)
 * Cosmos-Reason2 is based on the Qwen3-VL architecture.
   * [Qwen3-VL Repository](https://github.com/QwenLM/Qwen3-VL)

@@ -18,7 +18,7 @@ name = "notebooks"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
-    "cosmos-reason2-utils[inference,trl,cu128_torch28]",
+    "cosmos-reason2-utils[trl,cu128_torch28]",
 ]
 
 [dependency-groups]
