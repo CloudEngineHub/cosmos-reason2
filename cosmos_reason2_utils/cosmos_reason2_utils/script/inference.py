@@ -40,6 +40,7 @@ from rich import print
 from rich.pretty import pprint
 from typing_extensions import assert_never
 
+from cosmos_reason2_utils.vision import IMAGE_PATCH_SIZE
 from cosmos_reason2_utils.text import (
     REASONING_PROMPT,
     SYSTEM_PROMPT,
@@ -237,6 +238,9 @@ class Online(Args):
     total_pixels: int | None = None
     """Max total pixels of the image/video."""
 
+    output: Annotated[str | None, tyro.conf.arg(aliases=("-o",))] = None
+    """Output directory for debugging."""
+
 
 def offline_inference(args: Offline):
     # Limit total pixels to fit in model length
@@ -335,16 +339,6 @@ def online_inference(args: Online):
     if args.verbose:
         pprint(model, expand_all=True)
 
-    # Create conversation
-    conversation = create_conversation_openai(
-        system_prompt=args.system_prompt,
-        user_prompt=args.user_prompt,
-        images=args.images,
-        videos=args.videos,
-    )
-    if args.verbose:
-        pprint(conversation, expand_all=True)
-
     # Process inputs
     max_model_len = model.max_model_len or qwen_vl_utils.vision_process.MODEL_SEQ_LEN
     assert args.sampling_params.max_tokens
@@ -367,10 +361,52 @@ def online_inference(args: Online):
             "longest_edge": total_pixels,
         },
     }
-    if args.verbose:
-        pprint_dict(mm_processor_kwargs, "mm_processor_kwargs")
+    
+    # Save inputs
+    images = list(args.images)
+    videos = list(args.videos)
+    if args.output:
+        vision_kwargs = dict(
+            fps=mm_processor_kwargs["fps"],
+            min_pixels=mm_processor_kwargs["size"]["shortest_edge"],
+            total_pixels=mm_processor_kwargs["size"]["longest_edge"],
+        )
+        VisionConfig.model_validate(vision_kwargs)
+        if args.verbose:
+            pprint_dict(vision_kwargs, "VisionConfig")
+        conversation = create_conversation(
+            system_prompt=args.system_prompt,
+            user_prompt=args.user_prompt,
+            images=images,
+            videos=videos,
+            vision_kwargs=vision_kwargs,
+        )
+        image_inputs, video_inputs, mm_processor_kwargs = qwen_vl_utils.process_vision_info(
+            conversation,
+            image_patch_size=IMAGE_PATCH_SIZE,
+            return_video_kwargs=True,
+            return_video_metadata=True,
+        )
+        breakpoint()
+        if image_inputs is not None:
+            for i, image in enumerate(image_inputs):
+                image_file = f"{args.output}/image_{i}.png"
+                image.save(image_file)
+                images[i] = image_file
+        if video_inputs is not None:
+            for i, (video, _) in enumerate(video_inputs):
+                videos[i] = {"frame_list": save_tensor(video, f"{args.output}/video_{i}")}
 
     # Run inference
+    conversation = create_conversation_openai(
+        system_prompt=args.system_prompt,
+        user_prompt=args.user_prompt,
+        images=images,
+        videos=videos,
+    )
+    if args.verbose:
+        pprint(conversation, expand_all=True)
+        pprint_dict(mm_processor_kwargs, "mm_processor_kwargs")
     chat_completion = client.chat.completions.create(
         messages=conversation,
         model=model.id,

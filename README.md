@@ -82,7 +82,7 @@ uvx hf auth login
 Install the repository:
 
 ```shell
-uv sync --extra cu128
+uv sync --extra cu130
 source .venv/bin/activate
 ```
 
@@ -91,7 +91,7 @@ CUDA variants:
 | CUDA Version | Arguments | Notes |
 | --- | --- | --- |
 | CUDA 12.8 | `--extra cu128` | [NVIDIA Driver](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-toolkit-release-notes/index.html#cuda-toolkit-major-component-versions) |
-| CUDA 13.0 | `--extra cu130` | [NVIDIA Driver](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#cuda-toolkit-major-component-versions) |
+| CUDA 13.0 | `--extra cu130` | [NVIDIA Driver](https://docs.nvidia.com/cuda/archive/13.0.2/cuda-toolkit-release-notes/index.html#cuda-toolkit-major-component-versions) |
 
 For DGX Spark and Jetson AGX, you must use CUDA 13.0. Additionally, you must set `TRITON_PTXAS_PATH` to your system `PTXAS`:
 
@@ -108,7 +108,7 @@ Please make sure you have access to Docker on your machine and the [NVIDIA Conta
 Build the container:
 
 ```bash
-image_tag=$(docker build -f Dockerfile --build-arg=CUDA_VERSION=12.8.1 -q .)
+image_tag=$(docker build -f Dockerfile --build-arg=CUDA_VERSION=13.0.2 -q .)
 ```
 
 CUDA variants:
@@ -116,7 +116,7 @@ CUDA variants:
 | CUDA Version | Arguments | Notes |
 | --- | --- | --- |
 | CUDA 12.8 | `--build-arg=CUDA_VERSION=12.8.1` | [NVIDIA Driver](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-toolkit-release-notes/index.html#cuda-toolkit-major-component-versions) |
-| CUDA 13.0 | `--build-arg=CUDA_VERSION=13.0.0` | [NVIDIA Driver](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#cuda-toolkit-major-component-versions) |
+| CUDA 13.0 | `--build-arg=CUDA_VERSION=13.0.2` | [NVIDIA Driver](https://docs.nvidia.com/cuda/archive/13.0.2/cuda-toolkit-release-notes/index.html#cuda-toolkit-major-component-versions) |
 
 For DGX Spark and Jetson AGX, you must use CUDA 13.0.
 
@@ -198,10 +198,10 @@ Caption a video ([sample output](assets/outputs/caption.log)):
 cosmos-reason2-inference online --port 8000 -i prompts/caption.yaml --reasoning --videos assets/sample.mp4 --fps 4
 ```
 
-Embodied reasoning with verbose output ([sample output](assets/outputs/embodied_reasoning.log)):
+Embodied reasoning and save the inputs to `outputs/embodied_reasoning` for debugging ([sample output](assets/outputs/embodied_reasoning.log)):
 
 ```shell
-cosmos-reason2-inference online -v --port 8000 -i prompts/embodied_reasoning.yaml --reasoning --images assets/sample.png
+cosmos-reason2-inference online -v --port 8000 -i prompts/embodied_reasoning.yaml --reasoning --images assets/sample.png -o outputs/embodied_reasoning
 ```
 
 To list available arguments:
@@ -212,7 +212,7 @@ cosmos-reason2-inference online --help
 
 #### Offline Inference
 
-Temporally caption a video and save the input frames to `outputs/temporal_localization` for debugging ([sample output](assets/outputs/temporal_localization.log)):
+Temporally caption a video and save the inputs to `outputs/temporal_localization` for debugging ([sample output](assets/outputs/temporal_localization.log)):
 
 ```shell
 cosmos-reason2-inference offline -v --max-model-len 16384 -i prompts/temporal_localization.yaml --videos assets/sample.mp4 --fps 4 -o outputs/temporal_localization

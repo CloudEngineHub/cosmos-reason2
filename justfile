@@ -1,7 +1,7 @@
 default:
   just --list
 
-default_cuda_name := "cu128"
+default_cuda_name := "cu130"
 
 # Install the repository
 install cuda_name=default_cuda_name *args:
@@ -90,7 +90,7 @@ _docker build_args='' run_args='':
 docker-cu128 *run_args: (_docker '--build-arg=CUDA_VERSION=12.8.1' run_args)
 
 # Run the CUDA 13.0 docker container.
-docker-cu130 *run_args: (_docker '--build-arg=CUDA_VERSION=13.0.0' run_args)
+docker-cu130 *run_args: (_docker '--build-arg=CUDA_VERSION=13.0.2' run_args)
 
 # Run the nightly docker container.
 docker-nightly *run_args: (_docker '-f docker/nightly.Dockerfile' run_args)

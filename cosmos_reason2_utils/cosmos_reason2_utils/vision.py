@@ -102,14 +102,19 @@ def _tensor_to_pil_images(tensor: torch.Tensor) -> list[Image.Image]:
     return [Image.fromarray(frame) for frame in frames]
 
 
-def save_tensor(tensor: torch.Tensor, path: str | Path) -> None:
+def save_tensor(tensor: torch.Tensor, path: str | Path) -> list[Path]:
     """Save a tensor as images to a directory.
 
     Args:
         tensor: Tensor with shape (C, H, W) or (T, C, H, W)
         path: Directory to save the images
     """
-    os.makedirs(path, exist_ok=True)
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
     images = _tensor_to_pil_images(tensor)
+    image_files = []
     for i, image in enumerate(images):
-        image.save(f"{path}/{i}.png")
+        image_file = path / f"{i}.png"
+        image.save(image_file)
+        image_files.append(image_file)
+    return image_files
