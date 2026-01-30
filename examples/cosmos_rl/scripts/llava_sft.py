@@ -70,10 +70,16 @@ class CustomDataset(torch.utils.data.Dataset):
         return len(self.annotation)
 
     def __getitem__(self, idx: int) -> list[dict]:
-        sample = self.annotation[idx]
+        try:
+            sample = self.annotation[idx]
 
-        user_prompt = sample["conversations"][0]["value"]
-        response = sample["conversations"][1]["value"]
+            user_prompt = sample["conversations"][0]["value"]
+            response = sample["conversations"][1]["value"]
+        except (KeyError, IndexError) as e:
+            logger.error(f"Missing required field in sample at index {idx}: {e}")
+            logger.error(f"Sample keys: {list(sample.keys())}")
+            raise
+
         images = sample.get("image", None) or sample.get("images", None)
         if images and isinstance(images, str):
             images = [images]
@@ -90,7 +96,13 @@ class CustomDataset(torch.utils.data.Dataset):
 
         # cosmos-rl expects base64 encoded images
         for i, image in enumerate(images):
-            images[i] = base64.b64encode(open(image, "rb").read())
+            try:
+                images[i] = base64.b64encode(open(image, "rb").read())
+            except (OSError, FileNotFoundError) as e:
+                logger.error(
+                    f"Failed to read image file at sample index {idx}, image index {i}: {e}"
+                )
+                raise
 
         # Remove image and video tags from user prompt
         user_prompt = re.sub(r"(\n)?</?(image|video)>(\n)?", "", user_prompt)

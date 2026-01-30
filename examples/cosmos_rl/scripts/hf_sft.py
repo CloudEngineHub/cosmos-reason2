@@ -64,10 +64,29 @@ class CustomDataset(torch.utils.data.Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx: int) -> list[dict]:
-        sample = self.dataset[idx]
-        conversations = json.loads(
-            sample[self.config.train.train_policy.conversation_column_name]
-        )
+        try:
+            sample = self.dataset[idx]
+            conversations = sample[
+                self.config.train.train_policy.conversation_column_name
+            ]
+        except KeyError as e:
+            logger.error(f"Failed to process sample at index {idx}: {e}")
+            logger.error(f"Available keys: {list(sample.keys())}")
+            raise
+
+        if isinstance(conversations, str):
+            try:
+                conversations = json.loads(conversations)
+            except json.JSONDecodeError:
+                logger.error(
+                    f"Conversation content (first 200 chars): {conversations[:200]}..."
+                )
+                raise
+        elif not isinstance(conversations, list):
+            raise ValueError(
+                f"Conversation column must be a list or JSON string, got: {type(conversations).__name__}"
+            )
+
         set_vision_kwargs(conversations, self.vision_kwargs)
         return conversations
 
