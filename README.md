@@ -38,6 +38,7 @@ ______________________________________________________________________
 
 ## News!
 
+* [February 9, 2026] We have Improved documentation and troubleshooting guidance, expanded platform support GB200 and ARM (torchcodec & inference sample fixed), enhanced quantization and training debuggability, and updated CUDA compatibility
 * [December 19, 2025] We have released the Cosmos-Reason2 models and code for Physical AI common sense and embodied reasoning. The 2B and 8B models are now available on Hugging Face.
 
 ## Model Family
