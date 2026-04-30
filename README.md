@@ -38,6 +38,7 @@ ______________________________________________________________________
 
 ## News!
 
+* [April 29, 2026] The [Cosmos-Reason2-32B](https://huggingface.co/nvidia/Cosmos-Reason2-32B) model is now available on HuggingFace, along with its performance benchmarks. The 2B and 8B model performance is also included.
 * [February 9, 2026] We have Improved documentation and troubleshooting guidance, expanded platform support GB200 and ARM (torchcodec & inference sample fixed), enhanced quantization and training debuggability, and updated CUDA compatibility
 * [December 19, 2025] We have released the Cosmos-Reason2 models and code for Physical AI common sense and embodied reasoning. The 2B and 8B models are now available on Hugging Face.
 
@@ -45,6 +46,7 @@ ______________________________________________________________________
 
 * [Cosmos-Reason2-2B](https://huggingface.co/nvidia/Cosmos-Reason2-2B)
 * [Cosmos-Reason2-8B](https://huggingface.co/nvidia/Cosmos-Reason2-8B)
+* [Cosmos-Reason2-8B](https://huggingface.co/nvidia/Cosmos-Reason2-32B)
 
 ## Setup
 
